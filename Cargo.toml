@@ -1,0 +1,4 @@
+[workspace]
+members = [ "pgp-card", "pgp-dump", "pgp-packet", "pgp-split"]
+
+resolver = "2"
