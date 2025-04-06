@@ -1,5 +1,8 @@
+use std::io::BufReader;
+
 use color_eyre::eyre::Result;
 use crossterm::event::KeyCode;
+use pgp::packet::PacketTrait;
 use ratatui::{prelude::*, widgets::*};
 use tokio::sync::mpsc;
 use tui_tree_widget::{Tree, TreeItem, TreeState};
@@ -196,13 +199,15 @@ async fn run(packets: Vec<pgp::packet::Packet>) -> Result<()> {
 #[tokio::main]
 async fn main() -> Result<()> {
     initialize_panic_handler();
+    pretty_env_logger::init();
 
     let file = std::env::args().nth(1).expect("missing file");
     let file = tokio::fs::read_to_string(file).await?;
 
     let mut dearmor = pgp::armor::Dearmor::new(file.as_bytes());
     dearmor.read_header()?;
-    let packets = pgp::packet::PacketParser::new(dearmor).collect::<Result<_, _>>()?;
+    let packets =
+        pgp::packet::PacketParser::new(BufReader::new(dearmor)).collect::<Result<_, _>>()?;
 
     startup()?;
     run(packets).await?;
